@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Game Ball</title>
+</head>
+
+<body>
+<canvas id="gameContext" width="800" height="600"></canvas>
+<script type="text/javascript">
+	var canvas = 0, canvasContext = 0;	
+	var playerScore1 = 0;
+	var playerScore2 = 0;
+	var ballX = 50;
+	var ballY = 50;
+	var ballXSpeed = 5;
+	var ballYSpeed = 4;
+	var paddleY1 = 250;
+	var paddleY2 = 250;
+	const PADDLE_THICKNESS = 10;
+	const PADDLE_HEIGHT = 100;
+	
+	// Vừa vào chương trình đã load nên biến toàn cục vào đây thì cũng biến thành cục bộ
+	window.onload = function(){
+		canvas = document.getElementById('gameContext');
+		canvasContext = canvas.getContext('2d');
+		var framePerSecond = 30;	
+		setInterval(function(){
+			moveEveryThing();
+			drawEveryThing();	
+		},1000/framePerSecond);
+		canvas.addEventListener('mousemove', function(e) {
+			var mousePos = calculateMousePos(e);
+			// Di chuyển lên so với con trỏ chuột, con trỏ nằm giữa vật thể 
+			// Nếu chỉ có mousePos.y thì con trỏ không nằm đúng so với vật thể
+			paddleY2 = 	mousePos.y - (PADDLE_HEIGHT/2); 
+		});
+	}
+		
+	function computerMove(){
+		var paddleY1Center = paddleY1 + (PADDLE_HEIGHT / 2);
+		// 						250    + 100 / 2 = 150
+		if (paddleY1Center < ballY - 35) // ví dụ: if (300 < 50 - 35) thì tiến lên để hứng bóng
+		{
+			paddleY1 += 6;	
+		}	
+		else if (paddleY1Center > ballY + 35) //ví dụ: if (300 > 50 + 35) thì lùi lại để hứng bóng
+		{
+			paddleY1 -= 6;		
+		}
+	}
+	
+	function moveEveryThing() {
+		computerMove();
+		
+		ballX += ballXSpeed; 
+		ballY += ballYSpeed;
+		if (ballX > canvas.width)
+		{
+		 // ballSpeed -= 5;
+		 // ballX += (ballSpeed - 5);
+		 // setInterval(lap lai lien tuc); 
+			if (ballY > paddleY2 && ballY < (paddleY2 + PADDLE_HEIGHT))
+			{
+				//Khi ballSpeed < 0 -> -(-ballSpeed)
+				ballXSpeed = -ballXSpeed;
+				var deltaY = ballY - (paddleY2 + PADDLE_HEIGHT / 2);
+				ballYSpeed = deltaY * 0.35;
+			}
+			else 
+			{
+				ballXReset();
+				playerScore1++;	
+			}
+		}
+		else if(ballX < 0){
+			if (ballY > paddleY1 && ballY < (paddleY1 + PADDLE_HEIGHT))
+			{
+				//Khi ballSpeed < 0 -> -(-ballSpeed)
+				ballXSpeed = -ballXSpeed;
+				var deltaY = ballY - (paddleY2 + PADDLE_HEIGHT / 2);
+				ballYSpeed = deltaY * 0.35;
+			}
+			else 
+			{
+				ballXReset();
+				playerScore2++;	
+			}
+		}
+		
+		if (ballY > canvas.height)
+		{
+			ballYSpeed = -ballYSpeed;
+			
+		}
+		else if (ballY < 0)
+		{
+			ballYSpeed = -ballYSpeed;	
+		}
+	}	
+	
+	function drawEveryThing(){
+		colorRect(0, 0, canvas.width, canvas.height, "black")
+		// Draw a rect left - computer 
+		colorRect(0, paddleY1, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
+		// Draw a rect right - user
+		colorRect(canvas.width - PADDLE_THICKNESS, paddleY2, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
+		colorCircle(ballX, ballY, Math.PI * 2, 'red');
+		
+		canvasContext.fillStyle = 'white';
+		canvasContext.fillText(playerScore1, 100, 100);
+		canvasContext.fillText(playerScore2, canvas.width - 100, 100);
+		drawNet();
+	}
+	
+	function colorCircle(centerX, centerY, radius, color){
+	 	canvasContext.fillStyle = color;
+		canvasContext.beginPath();
+		// .arc(x,y,r, startAngle, endAngle, boolean);
+		canvasContext.arc(centerX, centerY, 10, 0, radius , true);
+		canvasContext.fill();
+	}
+	
+	function colorRect(leftX, topY, width, height, color){
+		canvasContext.fillStyle = color;
+		canvasContext.fillRect(leftX, topY, width, height);
+	}
+	
+	// rectObject = object.getBoundingClientRect(): Return the size of an element and its position relative to the viewport.
+	// documentElement: Tượng trưng tai lieu html
+	function calculateMousePos(e) {
+		var rect = canvas.getBoundingClientRect();
+		var root = document.documentElement;
+		var mouseX = e.clientX - rect.left - root.scrollLeft;
+		var mouseY = e.clientY - rect.top - root.scrollTop;
+		// Trả về một đối tượng
+		return {
+			x: mouseX,
+			y: mouseY
+		}
+	}
+	
+	function ballXReset()
+	{
+		ballXSpeed = -ballXSpeed;
+		ballX = canvas.width / 2;
+		ballY = canvas.height / 2;	
+	}
+	
+	
+	function drawNet() {
+		for(var i = 0;i < canvas.height;i += 40) 
+			colorRect(canvas.width/2-1, i, 2, 20, 'blue');
+	}
+</script>
+</body>
+</html>
